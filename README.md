@@ -23,5 +23,6 @@ fun
 Setup
 -----
 create a file rdio_consumer_credentials.py, with the following information:
+
 RDIO_CONSUMER_KEY = 'foo'
 RDIO_CONSUMER_SECRET = 'bar'
