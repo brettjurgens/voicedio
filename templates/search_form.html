@@ -1,0 +1,105 @@
+<div class="logout"><a href="/logout">Logout</a></div>
+<div id="voicecontainer">
+  <input type="text" id="song" onspeechchange="endspeech();" onwebkitspeechchange="endspeech();" speech="speech" x-webkit-speech />
+</div>
+<div id="albumcontainer"></div>
+<div id="resultscontainer">
+  <span id="result"></span>
+</div>
+
+<div id="rdioapi"></div>
+
+<style>
+  body {
+    font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+  }
+  #voicecontainer {
+    margin: 15% auto 0;
+    width: 27px;
+    height: 40px;
+  }
+  #song {
+    cursor:pointer;
+    margin:10px;
+    color:transparent;
+    background-color:transparent;
+    border:0;
+    width:15px;
+    -webkit-transform: scale(3.0, 3.0);
+    -moz-transform: scale(3.0, 3.0);
+    -ms-transform: scale(3.0, 3.0);
+    transform: scale(3.0, 3.0);
+  }
+  #resultscontainer {
+    text-align: center;
+    margin-top: 20px;
+    font-size: 24px;
+    color: #888;
+  }
+  .logout, .logout a {
+    font-size: 12px;
+    text-decoration: none;
+    color: #aaa;
+    text-align: right;
+  }
+  #albumcontainer {
+    text-align: center;
+  }
+  #result a {
+    text-decoration: none;
+    color: #888;
+  }
+  #justplayit {
+    margin-top:;
+    font-size:18px;
+    color: #ccc;
+  }
+</style>
+<script src="//ajax.googleapis.com/ajax/libs/jquery/1.8.3/jquery.min.js"></script>
+<script src="//raw.github.com/rdio/jquery.rdio.js/master/jquery.rdio.min.js"></script>
+<script type="text/javascript">
+var rdio;
+  function endspeech() {
+    song = $('#song').val();
+    $("<span id='result'>You asked for: <i>" + song + "</i></span>").replaceAll("#result");
+    randomTrack();
+  }
+  function randomTrack() {
+    search = $('#song').val();
+    $.post('/toptrack',
+      function(data) {
+        rdio = data;
+        $('<br /><span id="dontcare">However, that song\'s lame.<br />'
+          + 'Playing <a href="' + data["shortUrl"] + '">' + data["name"] + '</a> ' 
+          + 'by <a href="' + rdioURL(data['artistUrl']) + '">' + data["artist"] + '</a> instead.</span>').appendTo('#result');
+        $('#voicecontainer').hide();
+        $('<a href="' + rdioURL(data["albumUrl"]) + '"><img src="' + data['icon'] + '" /></a>').appendTo('#albumcontainer');
+        $("#rdioapi").rdio(data['playbackToken']);
+        $('<br /><br /><a id="justplayit" href="javascript:searchRdio()">Play what you actually wanted</a>').appendTo('#result');
+      })
+  }
+  function searchRdio() {
+    search = $('#song').val();
+    $.post('/search', {'query': search},
+      function(data) {
+        rdio = data;
+        $('#result').empty();
+        $('#albumcontainer').empty();
+        $('<span id="realres">We\'ve searched for <i>' + search + '</i>.<br />'
+          + 'Playing <a href="' + data["shortUrl"] + '">' + data["name"] + '</a> ' 
+          + 'by <a href="' + rdioURL(data['artistUrl']) + '">' + data["artist"] + '</a>.</span>').appendTo('#result');
+        $('<a href="' + rdioURL(data["albumUrl"]) + '"><img src="' + data['icon'] + '" /></a>').appendTo('#albumcontainer');
+        $('#rdioapi').rdio().play(data['key']);
+      })
+  }
+
+  function rdioURL(urlseg) {
+    return "https://rdio.com" + urlseg;
+  }
+
+  $(function(){
+    $('#rdioapi').bind('ready.rdio', function() {
+      $(this).rdio().play(rdio['key']);
+    });
+  })
+</script>
